@@ -12,7 +12,7 @@ public abstract class Model {
     public String id;
 
     public Date lastUpdate;
-    public Date creationDate;
+    public Date creationDate = new Date();
 
     public Model() {
     }
