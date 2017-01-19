@@ -52,7 +52,7 @@
 	
 	<distributionManagement>
 		<repository>
-			<id>webever.sftp</id>
+			<id>webever.sftp.public</id>
 			<name>Webever Maven Repo</name>
 			<url>sftp://webever.de:226/maven/public</url>
 		</repository>

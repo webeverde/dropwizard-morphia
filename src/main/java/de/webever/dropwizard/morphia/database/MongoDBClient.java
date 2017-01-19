@@ -30,9 +30,9 @@ public class MongoDBClient implements Managed {
 
     private HashMap<Class<? extends Model>, List<Consumer<? extends Model>>> saveHooks = new HashMap<>();
 
-    public MongoDBClient(MongoDBConfiguration configuration) {
+    public MongoDBClient(MongoDBConfiguration configuration, String modelPackage) {
 	this.configuration = configuration;
-	morphia.mapPackage(configuration.modelPackage, true);
+	morphia.mapPackage(modelPackage, true);
 	client = new MongoClient(configuration.host, configuration.port);
 	datastore = morphia.createDatastore(client, configuration.dataStore);
 	datastore.ensureIndexes();

@@ -13,12 +13,14 @@ public abstract class MorphiaBundle<T extends Configuration> implements Configur
     @Override
     public void run(T configuration, Environment environment) throws Exception {
 	final MongoDBConfiguration dbConfiguration = getMongoDBConfiguration(configuration);
-	mongoDBClient = new MongoDBClient(dbConfiguration);
+	mongoDBClient = new MongoDBClient(dbConfiguration, getModelPackage());
 	environment.lifecycle().manage(mongoDBClient);
 	environment.healthChecks().register("MongoDB", new MongoDBHealthCheck(mongoDBClient));
     }
 
     protected abstract MongoDBConfiguration getMongoDBConfiguration(T configuration);
+    
+    protected abstract String getModelPackage(); 
 
     @Override
     public void initialize(Bootstrap<?> bootstrap) {
