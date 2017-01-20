@@ -6,15 +6,69 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.PrePersist;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 @Entity
 public abstract class Model {
     @Id
-    public String id;
+    private String id;
 
-    public Date lastUpdate;
-    public Date creationDate = new Date();
+    private Date lastUpdate;
+    private Date creationDate = new Date();
 
+    @JsonCreator
     public Model() {
+    }
+
+    public Model(String id, Date lastUpdate, Date creationDate) {
+	this.id = id;
+	this.lastUpdate = lastUpdate;
+	this.creationDate = creationDate;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+	return id;
+    }
+
+    /**
+     * @param id
+     *            the id to set
+     */
+    public void setId(String id) {
+	this.id = id;
+    }
+
+    /**
+     * @return the lastUpdate
+     */
+    public Date getLastUpdate() {
+	return lastUpdate;
+    }
+
+    /**
+     * @param lastUpdate
+     *            the lastUpdate to set
+     */
+    public void setLastUpdate(Date lastUpdate) {
+	this.lastUpdate = lastUpdate;
+    }
+
+    /**
+     * @return the creationDate
+     */
+    public Date getCreationDate() {
+	return creationDate;
+    }
+
+    /**
+     * @param creationDate
+     *            the creationDate to set
+     */
+    public void setCreationDate(Date creationDate) {
+	this.creationDate = creationDate;
     }
 
     @PrePersist

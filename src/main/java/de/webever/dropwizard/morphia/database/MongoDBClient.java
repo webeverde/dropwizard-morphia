@@ -67,8 +67,8 @@ public class MongoDBClient implements Managed {
 
     @SuppressWarnings("unchecked")
     public <T extends Model> T save(T model) {
-	if (model.id == null) {
-	    model.id = UUID.randomUUID().toString();
+	if (model.getId() == null) {
+	    model.setId(UUID.randomUUID().toString());
 	}
 	Key<T> key = datastore.save(model);
 	T savedModel = findById(key.getId().toString(), (Class<T>) model.getClass());
@@ -125,7 +125,7 @@ public class MongoDBClient implements Managed {
     public <T extends Model> Query<? extends Model> refModelIn(Query<? extends Model> query, String field, Class<T> clazz, List<T> models) {
 	List<String> ids = new ArrayList<>();
 	for (T t : models) {
-	    ids.add(t.id);
+	    ids.add(t.getId());
 	}
 	return refIn(query, field, clazz, ids);
     }
