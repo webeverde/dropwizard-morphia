@@ -5,100 +5,111 @@ import java.util.Date;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.PrePersist;
+import org.mongodb.morphia.mapping.Mapper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.mongodb.DBObject;
 
 @Entity
 public abstract class Model {
-    @Id
-    private String id;
+	@Id
+	private String id;
 
-    private Date lastUpdate;
-    private Date creationDate = new Date();
+	private Date lastUpdate;
+	private Date creationDate = new Date();
 
-    @JsonCreator
-    public Model() {
-    }
+	@JsonCreator
+	public Model() {
+	}
 
-    public Model(String id, Date lastUpdate, Date creationDate) {
-	this.id = id;
-	this.lastUpdate = lastUpdate;
-	this.creationDate = creationDate;
-    }
+	public Model(String id, Date lastUpdate, Date creationDate) {
+		this.id = id;
+		this.lastUpdate = lastUpdate;
+		this.creationDate = creationDate;
+	}
 
-    /**
-     * @return the id
-     */
-    public String getId() {
-	return id;
-    }
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
 
-    /**
-     * @param id
-     *            the id to set
-     */
-    public void setId(String id) {
-	this.id = id;
-    }
+	/**
+	 * @param id
+	 *            the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    /**
-     * @return the lastUpdate
-     */
-    public Date getLastUpdate() {
-	return lastUpdate;
-    }
+	/**
+	 * @return the lastUpdate
+	 */
+	public Date getLastUpdate() {
+		return lastUpdate;
+	}
 
-    /**
-     * @param lastUpdate
-     *            the lastUpdate to set
-     */
-    public void setLastUpdate(Date lastUpdate) {
-	this.lastUpdate = lastUpdate;
-    }
+	/**
+	 * @param lastUpdate
+	 *            the lastUpdate to set
+	 */
+	public void setLastUpdate(Date lastUpdate) {
+		this.lastUpdate = lastUpdate;
+	}
 
-    /**
-     * @return the creationDate
-     */
-    public Date getCreationDate() {
-	return creationDate;
-    }
+	/**
+	 * @return the creationDate
+	 */
+	public Date getCreationDate() {
+		return creationDate;
+	}
 
-    /**
-     * @param creationDate
-     *            the creationDate to set
-     */
-    public void setCreationDate(Date creationDate) {
-	this.creationDate = creationDate;
-    }
+	/**
+	 * 
+	 * @param creationDate
+	 *            the creationDate to set
+	 */
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
 
-    @PrePersist
-    void prePersist() {
-	lastUpdate = new Date();
-    }
+	// TODO CreationDate should not be overwritten.
+	@PrePersist
+	void prePersist(final DBObject dbObj) {
+		//  CreationDate is only written once on creation. DOESNT WORK!
+		if (dbObj.containsField("id")) {
+			dbObj.removeField("creationDate");
+		} else {
+			creationDate = new Date();
+		}
+		lastUpdate = new Date();
 
-    @Override
-    public int hashCode() {
-	final int prime = 31;
-	int result = 1;
-	result = prime * result + ((id == null) ? 0 : id.hashCode());
-	return result;
-    }
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-	if (this == obj)
-	    return true;
-	if (obj == null)
-	    return false;
-	if (getClass() != obj.getClass())
-	    return false;
-	Model other = (Model) obj;
-	if (id == null) {
-	    if (other.id != null)
-		return false;
-	} else if (!id.equals(other.id))
-	    return false;
-	return true;
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Model other = (Model) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
+	}
 
 }
