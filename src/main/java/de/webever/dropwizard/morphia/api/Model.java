@@ -76,15 +76,10 @@ public abstract class Model {
 
 	// TODO CreationDate should not be overwritten.
 	@PrePersist
-	void prePersist(final DBObject dbObj) {
+	DBObject prePersist(final DBObject dbObj) {
 		//  CreationDate is only written once on creation. DOESNT WORK!
-		if (dbObj.containsField("id")) {
-			dbObj.removeField("creationDate");
-		} else {
-			creationDate = new Date();
-		}
 		lastUpdate = new Date();
-
+		return dbObj;
 	}
 
 	@Override
