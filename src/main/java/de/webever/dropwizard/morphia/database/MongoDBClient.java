@@ -15,7 +15,7 @@ import org.mongodb.morphia.query.UpdateOperations;
 import com.mongodb.MongoClient;
 
 import de.webever.dropwizard.morphia.MongoDBConfiguration;
-import de.webever.dropwizard.morphia.api.Model;
+import de.webever.dropwizard.morphia.api.MorphiaModel;
 import io.dropwizard.lifecycle.Managed;
 
 public class MongoDBClient implements Managed {
@@ -28,7 +28,7 @@ public class MongoDBClient implements Managed {
 
 	final MongoClient client;
 
-	private HashMap<Class<? extends Model>, List<Consumer<? extends Model>>> saveHooks = new HashMap<>();
+	private HashMap<Class<? extends MorphiaModel>, List<Consumer<? extends MorphiaModel>>> saveHooks = new HashMap<>();
 
 	public MongoDBClient(MongoDBConfiguration configuration, String modelPackage) {
 		this.configuration = configuration;
@@ -56,8 +56,8 @@ public class MongoDBClient implements Managed {
 		return client;
 	}
 
-	public <T extends Model> void addSaveHook(Class<T> clazz, Consumer<T> consumer) {
-		List<Consumer<? extends Model>> consumers = saveHooks.get(clazz);
+	public <T extends MorphiaModel> void addSaveHook(Class<T> clazz, Consumer<T> consumer) {
+		List<Consumer<? extends MorphiaModel>> consumers = saveHooks.get(clazz);
 		if (consumers == null) {
 			consumers = new ArrayList<>();
 		}
@@ -66,15 +66,15 @@ public class MongoDBClient implements Managed {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends Model> T save(T model) {
+	public <T extends MorphiaModel> T save(T model) {
 		if (model.getId() == null) {
 			model.setId(UUID.randomUUID().toString());
 		}
 		Key<T> key = datastore.save(model);
 		T savedModel = findById(key.getId().toString(), (Class<T>) model.getClass());
-		List<Consumer<? extends Model>> consumers = saveHooks.get(model.getClass());
+		List<Consumer<? extends MorphiaModel>> consumers = saveHooks.get(model.getClass());
 		if (consumers != null) {
-			for (Consumer<? extends Model> c : consumers) {
+			for (Consumer<? extends MorphiaModel> c : consumers) {
 				Consumer<T> consumer = (Consumer<T>) c;
 				consumer.accept(savedModel);
 			}
@@ -82,15 +82,15 @@ public class MongoDBClient implements Managed {
 		return savedModel;
 	}
 
-	public <T extends Model> T findById(String id, Class<T> clazz) {
+	public <T extends MorphiaModel> T findById(String id, Class<T> clazz) {
 		return findByField("id", id, clazz);
 	}
 
-	public <T extends Model> T findByField(String field, Object value, Class<T> clazz) {
+	public <T extends MorphiaModel> T findByField(String field, Object value, Class<T> clazz) {
 		return datastore.createQuery(clazz).field(field).equal(value).get();
 	}
 
-	public <T extends Model> List<T> findAllByField(String field, Object value, Class<T> clazz) {
+	public <T extends MorphiaModel> List<T> findAllByField(String field, Object value, Class<T> clazz) {
 		return datastore.createQuery(clazz).field(field).equal(value).asList();
 	}
 
@@ -103,37 +103,37 @@ public class MongoDBClient implements Managed {
 		}
 	}
 
-	public <T extends Model> List<T> findAll(Class<T> clazz) {
+	public <T extends MorphiaModel> List<T> findAll(Class<T> clazz) {
 		return datastore.createQuery(clazz).asList();
 	}
 
-	public <T extends Model> Query<T> createQuery(Class<T> clazz) {
+	public <T extends MorphiaModel> Query<T> createQuery(Class<T> clazz) {
 		return datastore.createQuery(clazz);
 	}
 
-	public <T extends Model> void delete(T model) {
+	public <T extends MorphiaModel> void delete(T model) {
 		datastore.delete(model);
 	}
 
-	public <T extends Model> void delete(Query<T> query) {
+	public <T extends MorphiaModel> void delete(Query<T> query) {
 		datastore.delete(query);
 	}
 
-	public <T extends Model> void updateField(String fieldName, Object value, T model) {
+	public <T extends MorphiaModel> void updateField(String fieldName, Object value, T model) {
 		@SuppressWarnings("unchecked")
 		UpdateOperations<T> operation = (UpdateOperations<T>) datastore.createUpdateOperations(model.getClass());
 		operation.set(fieldName, value);
 		datastore.update(model, operation);
 	}
 
-	public <T extends Model> void addToField(String fieldName, Object value, T model) {
+	public <T extends MorphiaModel> void addToField(String fieldName, Object value, T model) {
 		@SuppressWarnings("unchecked")
 		UpdateOperations<T> operation = (UpdateOperations<T>) datastore.createUpdateOperations(model.getClass());
 		operation.addToSet(fieldName, value);
 		datastore.update(model, operation);
 	}
 
-	public <T extends Model> Query<? extends Model> refModelIn(Query<? extends Model> query, String field,
+	public <T extends MorphiaModel> Query<? extends MorphiaModel> refModelIn(Query<? extends MorphiaModel> query, String field,
 			Class<T> clazz, List<T> models) {
 		List<String> ids = new ArrayList<>();
 		for (T t : models) {
@@ -142,7 +142,7 @@ public class MongoDBClient implements Managed {
 		return refIn(query, field, clazz, ids);
 	}
 
-	public <T extends Model> Query<? extends Model> refIn(Query<? extends Model> query, String field, Class<T> clazz,
+	public <T extends MorphiaModel> Query<? extends MorphiaModel> refIn(Query<? extends MorphiaModel> query, String field, Class<T> clazz,
 			List<String> ids) {
 		List<Key<T>> list = new ArrayList<>();
 		for (String id : ids) {
@@ -151,7 +151,7 @@ public class MongoDBClient implements Managed {
 		return query.field(field).in(list);
 	}
 
-	public <T extends Model> Query<? extends Model> refEqual(Query<? extends Model> query, String field, Class<T> clazz,
+	public <T extends MorphiaModel> Query<? extends MorphiaModel> refEqual(Query<? extends MorphiaModel> query, String field, Class<T> clazz,
 			String id) {
 		return query.field(field).equal(new Key<>(clazz, clazz.getSimpleName(), id));
 	}

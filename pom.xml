@@ -47,6 +47,16 @@
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-crypto</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+		<groupId>org.reflections</groupId>
+		<artifactId>reflections</artifactId>
+		<version>0.9.10</version>
+		</dependency>
 	</dependencies>
 	
 	

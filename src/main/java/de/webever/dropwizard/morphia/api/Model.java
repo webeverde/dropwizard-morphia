@@ -5,13 +5,12 @@ import java.util.Date;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.PrePersist;
-import org.mongodb.morphia.mapping.Mapper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.mongodb.DBObject;
 
 @Entity
-public abstract class Model {
+public abstract class Model implements MorphiaModel {
 	@Id
 	private String id;
 
