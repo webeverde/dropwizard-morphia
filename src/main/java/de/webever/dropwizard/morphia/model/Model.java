@@ -1,5 +1,7 @@
-package de.webever.dropwizard.morphia.api;
+package de.webever.dropwizard.morphia.model;
 
+import java.beans.IntrospectionException;
+import java.lang.reflect.Field;
 import java.util.Date;
 
 import org.mongodb.morphia.annotations.Entity;
@@ -17,6 +19,8 @@ public abstract class Model implements MorphiaModel {
 	private Date lastUpdate;
 	private Date creationDate = new Date();
 
+	private static UpdateMask<? extends Model> updateMask;
+	
 	@JsonCreator
 	public Model() {
 	}
@@ -76,7 +80,7 @@ public abstract class Model implements MorphiaModel {
 	// TODO CreationDate should not be overwritten.
 	@PrePersist
 	DBObject prePersist(final DBObject dbObj) {
-		//  CreationDate is only written once on creation. DOESNT WORK!
+		// CreationDate is only written once on creation. DOESNT WORK!
 		lastUpdate = new Date();
 		return dbObj;
 	}

@@ -1,8 +1,12 @@
 package de.webever.dropwizard.morphia.database;
 
+import java.beans.IntrospectionException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -11,14 +15,25 @@ import org.mongodb.morphia.Key;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
 
 import de.webever.dropwizard.morphia.MongoDBConfiguration;
-import de.webever.dropwizard.morphia.api.MorphiaModel;
+import de.webever.dropwizard.morphia.model.Model;
+import de.webever.dropwizard.morphia.model.MorphiaModel;
+import de.webever.dropwizard.morphia.model.UpdateMask;
 import io.dropwizard.lifecycle.Managed;
 
+/**
+ * @author richardnaeve
+ *
+ */
 public class MongoDBClient implements Managed {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBClient.class);
 
 	final Morphia morphia = new Morphia();
 
@@ -28,14 +43,51 @@ public class MongoDBClient implements Managed {
 
 	final MongoClient client;
 
+	private HashMap<Class<? extends MorphiaModel>, UpdateMask<? extends MorphiaModel>> updateMasks = new HashMap<>();
+
 	private HashMap<Class<? extends MorphiaModel>, List<Consumer<? extends MorphiaModel>>> saveHooks = new HashMap<>();
 
-	public MongoDBClient(MongoDBConfiguration configuration, String modelPackage) {
+	public MongoDBClient(MongoDBConfiguration configuration, String modelPackage) throws IntrospectionException {
 		this.configuration = configuration;
 		morphia.mapPackage(modelPackage, true);
 		client = new MongoClient(configuration.host, configuration.port);
 		datastore = morphia.createDatastore(client, configuration.dataStore);
 		datastore.ensureIndexes();
+		Reflections reflections = new Reflections(modelPackage);
+		Set<Class<? extends Model>> classes = reflections.getSubTypesOf(Model.class);
+		for (Class<? extends Model> class1 : classes) {
+			updateMasks.put(class1, initMask(class1));
+		}
+
+	}
+
+	private <T extends Model> void readFields(Class<T> clazz, List<Field> allFields) {
+		Field[] fields = clazz.getDeclaredFields();
+		for (int i = 0; i < fields.length; i++) {
+			allFields.add(fields[i]);
+		}
+		@SuppressWarnings("unchecked")
+		Class<T> superClass = (Class<T>) clazz.getSuperclass();
+		if (!superClass.equals(Model.class)) {
+			readFields(superClass, allFields);
+		}
+	}
+
+	private <T extends Model> UpdateMask<T> initMask(Class<T> clazz) throws IntrospectionException {
+		List<Field> allFields = new ArrayList<>();
+		readFields(clazz, allFields);
+		String[] fieldNames = new String[allFields.size()];
+		for (int i = 0; i < fieldNames.length; i++) {
+			fieldNames[i] = allFields.get(i).getName();
+		}
+		return new UpdateMask<>(clazz, fieldNames);
+	}
+
+	public <T extends Model> void removeFieldsFromUpdateMask(Class<T> clazz, String... fields) {
+		UpdateMask<? extends MorphiaModel> mask = updateMasks.get(clazz);
+		for (String fieldName : fields) {
+			mask.removeField(fieldName);
+		}
 	}
 
 	@Override
@@ -80,6 +132,26 @@ public class MongoDBClient implements Managed {
 			}
 		}
 		return savedModel;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends Model> T update(T model) {
+		return update(model, (UpdateMask<T>) updateMasks.get(model.getClass()));
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends MorphiaModel> T update(T model, UpdateMask<T> mask) {
+		UpdateOperations<T> query = datastore.createUpdateOperations((Class<T>) model.getClass());
+		HashMap<String, Method> map = mask.getGetters();
+		for (String fieldName : map.keySet()) {
+			try {
+				query.set(fieldName, map.get(fieldName).invoke(model));
+			} catch (Exception e) {
+				LOGGER.error("Getter invokation failed!", e);
+			}
+		}
+		datastore.update(model, query);
+		return findById(model.getId().toString(), (Class<T>) model.getClass());
 	}
 
 	public <T extends MorphiaModel> T findById(String id, Class<T> clazz) {
@@ -133,8 +205,22 @@ public class MongoDBClient implements Managed {
 		datastore.update(model, operation);
 	}
 
-	public <T extends MorphiaModel> Query<? extends MorphiaModel> refModelIn(Query<? extends MorphiaModel> query, String field,
-			Class<T> clazz, List<T> models) {
+	/**
+	 * Updates a query for a field that references another {@link MorphiaModel}
+	 * and is in the supplied list of models.
+	 * 
+	 * @param query
+	 *            the query to update
+	 * @param field
+	 *            the field to compare
+	 * @param clazz
+	 *            the class of the field
+	 * @param models
+	 *            the models to compare to
+	 * @return the updated query
+	 */
+	public <T extends MorphiaModel> Query<? extends MorphiaModel> refModelIn(Query<? extends MorphiaModel> query,
+			String field, Class<T> clazz, List<T> models) {
 		List<String> ids = new ArrayList<>();
 		for (T t : models) {
 			ids.add(t.getId());
@@ -142,8 +228,22 @@ public class MongoDBClient implements Managed {
 		return refIn(query, field, clazz, ids);
 	}
 
-	public <T extends MorphiaModel> Query<? extends MorphiaModel> refIn(Query<? extends MorphiaModel> query, String field, Class<T> clazz,
-			List<String> ids) {
+	/**
+	 * Updates a query for a field that references another {@link MorphiaModel}
+	 * and is in the supplied list of ids.
+	 * 
+	 * @param query
+	 *            the query to update
+	 * @param field
+	 *            the field to compare
+	 * @param clazz
+	 *            the class of the field
+	 * @param ids
+	 *            the ids
+	 * @return the updated query
+	 */
+	public <T extends MorphiaModel> Query<? extends MorphiaModel> refIn(Query<? extends MorphiaModel> query,
+			String field, Class<T> clazz, List<String> ids) {
 		List<Key<T>> list = new ArrayList<>();
 		for (String id : ids) {
 			list.add(new Key<>(clazz, clazz.getSimpleName(), id));
@@ -151,8 +251,22 @@ public class MongoDBClient implements Managed {
 		return query.field(field).in(list);
 	}
 
-	public <T extends MorphiaModel> Query<? extends MorphiaModel> refEqual(Query<? extends MorphiaModel> query, String field, Class<T> clazz,
-			String id) {
+	/**
+	 * Updates a query for a field that references another {@link MorphiaModel}
+	 * and is equal to the supplied id.
+	 * 
+	 * @param query
+	 *            the query to update
+	 * @param field
+	 *            the field to compare
+	 * @param clazz
+	 *            the class of the field
+	 * @param ids
+	 *            the ids
+	 * @return the updated query
+	 */
+	public <T extends MorphiaModel> Query<? extends MorphiaModel> refEqual(Query<? extends MorphiaModel> query,
+			String field, Class<T> clazz, String id) {
 		return query.field(field).equal(new Key<>(clazz, clazz.getSimpleName(), id));
 	}
 

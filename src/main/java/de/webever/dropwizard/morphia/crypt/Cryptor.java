@@ -10,24 +10,27 @@ import java.util.Properties;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.codec.digest.Crypt;
 import org.apache.commons.crypto.stream.CryptoInputStream;
 import org.apache.commons.crypto.stream.CryptoOutputStream;
 
 public class Cryptor {
-	static SecretKeySpec key = new SecretKeySpec(getUTF8Bytes("1234567890123456"), "AES");
-	static IvParameterSpec iv = new IvParameterSpec(getUTF8Bytes("1234567890123456"));
-	static Properties properties = new Properties();
-	static String transform = "AES/CBC/PKCS5Padding";
-
+	private static SecretKeySpec key = new SecretKeySpec(getUTF8Bytes("1234567890123456"), "AES");
+	private static IvParameterSpec iv = new IvParameterSpec(getUTF8Bytes("1234567890123456"));
+	private static Properties properties = new Properties();
+	private static String transform = "AES/CBC/PKCS5Padding";
+	private static String seed = "1234";
 	/**
 	 * Initiated the encrypter with a new seed.
 	 * 
 	 * @param seed
 	 *            the seed.
 	 */
-	public static void initCrypt(String seed) {
+	public static void initCrypt(String seed, String apiPackageName) {
 		key = new SecretKeySpec(getUTF8Bytes(seed), "AES");
 		iv = new IvParameterSpec(getUTF8Bytes(seed));
+		Cryptor.seed = seed;
+		CryptModel.init(apiPackageName);
 	}
 
 	/**
@@ -77,5 +80,9 @@ public class Cryptor {
 
 	private static byte[] getUTF8Bytes(String input) {
 		return input.getBytes(StandardCharsets.UTF_8);
+	}
+	
+	public static String passwordEncrypt(String password){
+		return Crypt.crypt(password, seed);
 	}
 }

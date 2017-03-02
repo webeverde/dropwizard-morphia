@@ -15,7 +15,9 @@ public class MongoDBConfiguration extends Configuration {
     public int port = 27017;
     @NotEmpty
     public String dataStore = "dropwizard";
-
+    @NotEmpty
+    public String cryptSeed = "12345";
+    
     public MongoDBConfiguration() {
 	super();
     }

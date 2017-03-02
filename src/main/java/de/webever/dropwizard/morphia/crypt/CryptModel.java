@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.DBObject;
 
-import de.webever.dropwizard.morphia.api.Model;
+import de.webever.dropwizard.morphia.model.Model;
 
 /**
  * Encrypts every string field annoted with {@link Crypt}.
@@ -31,8 +31,11 @@ public abstract class CryptModel extends Model {
 	@Transient
 	protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-	static Reflections reflections = new Reflections("de.gastivo.servies.solutionware.api",
-			new FieldAnnotationsScanner());
+	static Reflections reflections;
+
+	public static void init(String packageName) {
+		reflections = new Reflections(packageName, new FieldAnnotationsScanner());
+	}
 
 	@PrePersist
 	void encryptFields(final DBObject dbObj) throws IllegalArgumentException, IllegalAccessException, IOException {
