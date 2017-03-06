@@ -1,7 +1,5 @@
 package de.webever.dropwizard.morphia.model;
 
-import java.beans.IntrospectionException;
-import java.lang.reflect.Field;
 import java.util.Date;
 
 import org.mongodb.morphia.annotations.Entity;
@@ -19,8 +17,6 @@ public abstract class Model implements MorphiaModel {
 	private Date lastUpdate;
 	private Date creationDate = new Date();
 
-	private static UpdateMask<? extends Model> updateMask;
-	
 	@JsonCreator
 	public Model() {
 	}

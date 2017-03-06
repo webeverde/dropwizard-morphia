@@ -15,7 +15,7 @@ public abstract class MorphiaBundle<T extends Configuration> implements Configur
 	public void run(T configuration, Environment environment) throws Exception {
 		final MongoDBConfiguration dbConfiguration = getMongoDBConfiguration(configuration);
 		mongoDBClient = new MongoDBClient(dbConfiguration, getModelPackage());
-		Cryptor.initCrypt(dbConfiguration.cryptSeed, getModelPackage());
+		Cryptor.initCrypt(dbConfiguration.cryptSeed, getModelPackage(), dbConfiguration.enableCrypt);
 		environment.lifecycle().manage(mongoDBClient);
 		environment.healthChecks().register("MongoDB", new MongoDBHealthCheck(mongoDBClient));
 	}

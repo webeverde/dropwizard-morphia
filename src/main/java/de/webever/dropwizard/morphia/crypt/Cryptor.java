@@ -26,11 +26,11 @@ public class Cryptor {
 	 * @param seed
 	 *            the seed.
 	 */
-	public static void initCrypt(String seed, String apiPackageName) {
+	public static void initCrypt(String seed, String apiPackageName, boolean enabled) {
 		key = new SecretKeySpec(getUTF8Bytes(seed), "AES");
 		iv = new IvParameterSpec(getUTF8Bytes(seed));
 		Cryptor.seed = seed;
-		CryptModel.init(apiPackageName);
+		CryptModel.init(apiPackageName, enabled);
 	}
 
 	/**
