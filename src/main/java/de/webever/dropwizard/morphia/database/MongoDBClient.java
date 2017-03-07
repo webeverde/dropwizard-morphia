@@ -81,8 +81,23 @@ public class MongoDBClient implements Managed {
 	return new UpdateMask<>(clazz, fieldNames);
     }
 
+    private <T extends Model> UpdateMask<T> getOrCreateUpdateMask(Class<T> clazz){
+	@SuppressWarnings("unchecked")
+	UpdateMask<T> mask = (UpdateMask<T>) updateMasks.get(clazz);
+	if (mask == null) {
+	    try {
+		mask = (UpdateMask<T>) initMask(clazz);
+	    } catch (IntrospectionException e) {
+		LOGGER.error("Error in initMask", e);
+		return null;
+	    }
+	    updateMasks.put(clazz, mask);
+	}
+	return mask;
+    }
+    
     public <T extends Model> void removeFieldsFromUpdateMask(Class<T> clazz, String... fields) {
-	UpdateMask<? extends MorphiaModel> mask = updateMasks.get(clazz);
+	UpdateMask<? extends MorphiaModel> mask = getOrCreateUpdateMask(clazz);
 	for (String fieldName : fields) {
 	    mask.removeField(fieldName);
 	}
@@ -135,16 +150,7 @@ public class MongoDBClient implements Managed {
     @SuppressWarnings("unchecked")
     public <T extends Model> T update(T model) {
 	Class<? extends Model> clazz = model.getClass();
-	UpdateMask<T> mask = (UpdateMask<T>) updateMasks.get(model.getClass());
-	if (mask == null) {
-	    try {
-		mask = (UpdateMask<T>) initMask(clazz);
-	    } catch (IntrospectionException e) {
-		LOGGER.error("Error in initMask", e);
-		return null;
-	    }
-	    updateMasks.put(clazz, mask);
-	}
+	UpdateMask<T> mask = (UpdateMask<T>) getOrCreateUpdateMask(clazz);
 	return update(model, mask);
     }
 
