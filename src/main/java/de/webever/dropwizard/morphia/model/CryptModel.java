@@ -1,4 +1,4 @@
-package de.webever.dropwizard.morphia.crypt;
+package de.webever.dropwizard.morphia.model;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -17,7 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.DBObject;
 
-import de.webever.dropwizard.morphia.model.Model;
+import de.webever.dropwizard.morphia.crypt.Crypt;
+import de.webever.dropwizard.morphia.crypt.Cryptor;
 
 /**
  * Encrypts every string field annoted with {@link Crypt}.

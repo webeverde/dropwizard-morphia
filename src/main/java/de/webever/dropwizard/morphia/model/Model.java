@@ -73,10 +73,8 @@ public abstract class Model implements MorphiaModel {
 		this.creationDate = creationDate;
 	}
 
-	// TODO CreationDate should not be overwritten.
 	@PrePersist
 	DBObject prePersist(final DBObject dbObj) {
-		// CreationDate is only written once on creation. DOESNT WORK!
 		lastUpdate = new Date();
 		return dbObj;
 	}

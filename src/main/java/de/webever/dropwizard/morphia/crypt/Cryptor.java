@@ -14,6 +14,8 @@ import org.apache.commons.codec.digest.Crypt;
 import org.apache.commons.crypto.stream.CryptoInputStream;
 import org.apache.commons.crypto.stream.CryptoOutputStream;
 
+import de.webever.dropwizard.morphia.model.CryptModel;
+
 public class Cryptor {
 	private static SecretKeySpec key = new SecretKeySpec(getUTF8Bytes("1234567890123456"), "AES");
 	private static IvParameterSpec iv = new IvParameterSpec(getUTF8Bytes("1234567890123456"));
