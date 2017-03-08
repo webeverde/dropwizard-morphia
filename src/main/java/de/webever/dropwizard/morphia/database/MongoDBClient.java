@@ -81,7 +81,7 @@ public class MongoDBClient implements Managed {
 	return new UpdateMask<>(clazz, fieldNames);
     }
 
-    private <T extends Model> UpdateMask<T> getOrCreateUpdateMask(Class<T> clazz){
+    private <T extends Model> UpdateMask<T> getOrCreateUpdateMask(Class<T> clazz) {
 	@SuppressWarnings("unchecked")
 	UpdateMask<T> mask = (UpdateMask<T>) updateMasks.get(clazz);
 	if (mask == null) {
@@ -95,7 +95,7 @@ public class MongoDBClient implements Managed {
 	}
 	return mask;
     }
-    
+
     public <T extends Model> void removeFieldsFromUpdateMask(Class<T> clazz, String... fields) {
 	UpdateMask<? extends MorphiaModel> mask = getOrCreateUpdateMask(clazz);
 	for (String fieldName : fields) {
@@ -220,6 +220,10 @@ public class MongoDBClient implements Managed {
 	datastore.update(model, operation);
     }
 
+    public <T extends MorphiaModel> UpdateOperations<T> createUpdateOperation(Class<T> clazz) {
+	return (UpdateOperations<T>) datastore.createUpdateOperations(clazz);
+    }
+
     /**
      * Updates a query for a field that references another {@link MorphiaModel}
      * and is in the supplied list of models.
@@ -283,6 +287,13 @@ public class MongoDBClient implements Managed {
     public <T extends MorphiaModel> Query<? extends MorphiaModel> refEqual(Query<? extends MorphiaModel> query,
 	    String field, Class<T> clazz, String id) {
 	return query.field(field).equal(new Key<>(clazz, clazz.getSimpleName(), id));
+    }
+
+    /**
+     * @return the datastore
+     */
+    public Datastore getDatastore() {
+	return datastore;
     }
 
 }
