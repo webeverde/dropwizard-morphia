@@ -70,12 +70,12 @@ public class MongoDBClient implements Managed {
     private <T extends Model> UpdateMask<T> initMask(Class<T> clazz) throws IntrospectionException {
 	List<Field> allFields = new ArrayList<>();
 	readFields(clazz, allFields);
-	String[] fieldNames = new String[allFields.size()];
+	Field[] fieldNames = new Field[allFields.size()];
 	for (int i = 0; i < fieldNames.length; i++) {
 	    Field f = allFields.get(i);
 	    if (!Modifier.isFinal(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())
 		    && !Modifier.isTransient(f.getModifiers()) && !f.isAnnotationPresent(Transient.class)) {
-		fieldNames[i] = allFields.get(i).getName();
+		fieldNames[i] = allFields.get(i);
 	    }
 	}
 	return new UpdateMask<>(clazz, fieldNames);
@@ -160,7 +160,12 @@ public class MongoDBClient implements Managed {
 	HashMap<String, Method> map = mask.getGetters();
 	for (String fieldName : map.keySet()) {
 	    try {
-		query.set(fieldName, map.get(fieldName).invoke(model));
+		Object value = map.get(fieldName).invoke(model);
+		if (value != null) {
+		    query.set(fieldName, value);
+		} else {
+		    query.unset(fieldName);
+		}
 	    } catch (Exception e) {
 		LOGGER.error("Getter invokation failed!", e);
 	    }
