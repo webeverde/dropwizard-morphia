@@ -1,6 +1,7 @@
 package de.webever.dropwizard.morphia;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -18,10 +19,11 @@ public class MongoDBConfiguration extends Configuration {
     @NotEmpty
     public String dataStore = "dropwizard";
     @NotEmpty
-    public String cryptSeed = "12345";
+    @Size(min = 16, max = 16)
+    public String cryptSeed = "1234567890123456";
     @NotNull
     public boolean enableCrypt = false;
-    
+
     public MongoDBConfiguration() {
 	super();
     }
