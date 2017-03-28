@@ -1,25 +1,20 @@
 package de.webever.dropwizard.morphia.crypt;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Properties;
 
+import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.Crypt;
-import org.apache.commons.crypto.stream.CryptoInputStream;
-import org.apache.commons.crypto.stream.CryptoOutputStream;
 
 import de.webever.dropwizard.morphia.model.CryptModel;
 
 public class Cryptor {
     private static SecretKeySpec key = new SecretKeySpec(getUTF8Bytes("1234567890123456"), "AES");
     private static IvParameterSpec iv = new IvParameterSpec(getUTF8Bytes("1234567890123456"));
-    private static Properties properties = new Properties();
     private static String transform = "AES/CBC/PKCS5Padding";
     private static String seed = "1234";
 
@@ -36,52 +31,52 @@ public class Cryptor {
 	iv = new IvParameterSpec(getUTF8Bytes(seed));
 	Cryptor.seed = seed;
 	CryptModel.init(apiPackageName, enabled);
-	encrypt("Text");
+	decrypt(encrypt("Text"));
     }
 
     /**
-     * Encrypts a UTF-8 string. The resulting encrypted string uses ISO 8859-1
-     * (ISO-LATIN-1).
+     * Encrypt a string.
      * 
-     * @param input
+     * @param value
      *            the string to encrypt
      * @return the encrypted string
      * @throws IOException
-     *             could be thrown by writing buffer.
+     *             something went massively wrong.
      */
-    public static String encrypt(String input) throws IOException {
+    public static String encrypt(String value) throws IOException {
+	try {
 
-	ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-	try (CryptoOutputStream cos = new CryptoOutputStream(transform, properties, outputStream, key, iv)) {
-	    cos.write(getUTF8Bytes(input));
-	    cos.flush();
+	    Cipher cipher = Cipher.getInstance(transform);
+	    cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+
+	    byte[] encrypted = cipher.doFinal(getUTF8Bytes(value));
+	    return Base64.encodeBase64String(encrypted);
+	} catch (Exception ex) {
+	    throw new IOException(ex);
 	}
-	return new String(outputStream.toByteArray(), StandardCharsets.ISO_8859_1);
+
     }
 
     /**
-     * Decrypts a ISO 8859-1 (ISO-LATIN-1) string. The resulting decryted string
-     * uses UTF-8.
+     * Descrypts a String
      * 
-     * @param input
-     *            the string to decrypt
+     * @param encrypted
+     *            the encrypted string
      * @return the decrypted string
      * @throws IOException
-     *             could be thrown by writing buffer.
+     *             something went massively wrong.
      */
-    public static String decrypt(String input) throws IOException {
-	InputStream inputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.ISO_8859_1));
+    public static String decrypt(String encrypted) throws IOException {
+	try {
 
-	try (CryptoInputStream cis = new CryptoInputStream(transform, properties, inputStream, key, iv)) {
-	    byte[] decryptedData = new byte[1024];
-	    int decryptedLen = 0;
-	    int i;
-	    while ((i = cis.read(decryptedData, decryptedLen, decryptedData.length - decryptedLen)) > -1) {
-		decryptedLen += i;
-	    }
-	    return new String(decryptedData, 0, decryptedLen, StandardCharsets.UTF_8);
+	    Cipher cipher = Cipher.getInstance(transform);
+	    cipher.init(Cipher.DECRYPT_MODE, key, iv);
+
+	    byte[] original = cipher.doFinal(Base64.decodeBase64(encrypted));
+	    return new String(original, StandardCharsets.UTF_8);
+	} catch (Exception ex) {
+	    throw new IOException(ex);
 	}
-
     }
 
     private static byte[] getUTF8Bytes(String input) {

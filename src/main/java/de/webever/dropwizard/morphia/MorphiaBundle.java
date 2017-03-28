@@ -18,6 +18,7 @@ public abstract class MorphiaBundle<T extends Configuration> implements Configur
 		Cryptor.initCrypt(dbConfiguration.cryptSeed, getModelPackage(), dbConfiguration.enableCrypt);
 		environment.lifecycle().manage(mongoDBClient);
 		environment.healthChecks().register("MongoDB", new MongoDBHealthCheck(mongoDBClient));
+		
 	}
 
 	protected abstract MongoDBConfiguration getMongoDBConfiguration(T configuration);

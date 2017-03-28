@@ -33,7 +33,7 @@ import io.dropwizard.lifecycle.Managed;
  */
 public class MongoDBClient implements Managed {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBClient.class);
+    private Logger LOGGER = LoggerFactory.getLogger(MongoDBClient.class);
 
     final Morphia morphia = new Morphia();
 
@@ -105,6 +105,7 @@ public class MongoDBClient implements Managed {
 
     @Override
     public void start() throws Exception {
+	LOGGER = LoggerFactory.getLogger(MongoDBClient.class);
     }
 
     @Override
@@ -132,11 +133,15 @@ public class MongoDBClient implements Managed {
 
     @SuppressWarnings("unchecked")
     public <T extends MorphiaModel> T save(T model) {
+	LOGGER.debug("saving model" + model.getClass().getSimpleName());
 	if (model.getId() == null) {
 	    model.setId(UUID.randomUUID().toString());
 	}
+	LOGGER.debug("write to db");
 	Key<T> key = datastore.save(model);
+	LOGGER.debug("loading saved model");
 	T savedModel = findById(key.getId().toString(), (Class<T>) model.getClass());
+	LOGGER.debug("running hooks");
 	List<Consumer<? extends MorphiaModel>> consumers = saveHooks.get(model.getClass());
 	if (consumers != null) {
 	    for (Consumer<? extends MorphiaModel> c : consumers) {
@@ -144,6 +149,7 @@ public class MongoDBClient implements Managed {
 		consumer.accept(savedModel);
 	    }
 	}
+	LOGGER.debug("done");
 	return savedModel;
     }
 

@@ -32,7 +32,7 @@ public abstract class CryptModel extends Model {
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     static Reflections reflections;
-    
+
     private static boolean enabled = true;
 
     public static void init(String packageName, boolean enable) {
@@ -65,7 +65,8 @@ public abstract class CryptModel extends Model {
     }
 
     private void forEveryCrypt(Function<String, String> f) throws IllegalArgumentException, IllegalAccessException {
-	if(!enabled){
+	LOGGER.debug("starting crypt. enabled:" + enabled);
+	if (!enabled) {
 	    return;
 	}
 	Set<Field> fields = reflections.getFieldsAnnotatedWith(Crypt.class);
@@ -74,6 +75,7 @@ public abstract class CryptModel extends Model {
 		field.setAccessible(true);
 		Object o = field.get(this);
 		if (o != null) {
+		    LOGGER.debug("crypt for field: " + field.getName());
 		    if (String.class.isAssignableFrom(field.getType())) {
 			String output = f.apply(o.toString());
 			field.set(this, output);
@@ -100,7 +102,7 @@ public abstract class CryptModel extends Model {
 			@SuppressWarnings("unchecked")
 			Map<Object, Object> map = (Map<Object, Object>) o;
 			map.forEach((key, value) -> {
-			    if (String.class.isAssignableFrom(value.getClass())) {
+			    if (value != null && String.class.isAssignableFrom(value.getClass())) {
 				map.put(key, f.apply((String) value));
 			    }
 			});
@@ -109,6 +111,7 @@ public abstract class CryptModel extends Model {
 		}
 	    }
 	}
+	LOGGER.debug("crypt done");
     }
 
 }
