@@ -1,4 +1,4 @@
-package de.webever.dropwizard.dorpwizard_morphia;
+package de.webever.dropwizard.morphia;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
