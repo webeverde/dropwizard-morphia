@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.ServerAddress;
 
 import de.webever.dropwizard.morphia.MongoDBConfiguration;
 import de.webever.dropwizard.morphia.model.Model;
@@ -50,7 +52,13 @@ public class MongoDBClient implements Managed {
     public MongoDBClient(MongoDBConfiguration configuration, String modelPackage) throws IntrospectionException {
 	this.configuration = configuration;
 	morphia.mapPackage(modelPackage, true);
-	client = new MongoClient(configuration.host, configuration.port);
+	if (configuration.replicaSetName != null && !configuration.replicaSetName.isEmpty()) {
+	    MongoClientOptions options = new MongoClientOptions.Builder()
+		    .requiredReplicaSetName(configuration.replicaSetName).build();
+	    client = new MongoClient(new ServerAddress(configuration.host, configuration.port), options);
+	} else {
+	    client = new MongoClient(configuration.host, configuration.port);
+	}
 	datastore = morphia.createDatastore(client, configuration.dataStore);
 	datastore.ensureIndexes();
     }

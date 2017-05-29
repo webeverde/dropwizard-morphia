@@ -22,7 +22,7 @@ public class TestCrypt {
     public void testCrypt() throws IOException {
 
 	Cryptor.initCrypt("1234567890123456", Model.class.getPackage().getName(), true);
-	String test = "Hellö Würld!";
+	String test = "Hellö@Würld.com!";
 	String enc = Cryptor.encrypt(test);
 	String dec = Cryptor.decrypt(enc);
 	assertThat("Strings should be equal", dec, equalTo(test));

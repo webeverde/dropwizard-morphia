@@ -46,7 +46,7 @@ public abstract class CryptModel extends Model {
 	    try {
 		return Cryptor.encrypt(input);
 	    } catch (IOException e) {
-		LOGGER.error("Encrypt failed!", e);
+		LOGGER.error("Encrypt failed! Val: " + input, e);
 	    }
 	    return null;
 	});
@@ -58,7 +58,7 @@ public abstract class CryptModel extends Model {
 	    try {
 		return Cryptor.decrypt(input);
 	    } catch (IOException e) {
-		LOGGER.error("Decrypt failed!", e);
+		LOGGER.error("Decrypt failed! Val: " + input, e);
 	    }
 	    return null;
 	});

@@ -18,6 +18,8 @@ public class MongoDBConfiguration extends Configuration {
     public int port = 27017;
     @NotEmpty
     public String dataStore = "dropwizard";
+    
+    public String replicaSetName = null;
     @NotEmpty
     @Size(min = 16, max = 16)
     public String cryptSeed = "1234567890123456";
