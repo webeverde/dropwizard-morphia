@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Key;
@@ -16,6 +17,7 @@ import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import org.mongodb.morphia.query.UpdateResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,6 +202,15 @@ public class MongoDBClient implements Managed {
 	return datastore.createQuery(clazz).field(field).equal(value).asList();
     }
 
+    public <T extends MorphiaModel> List<T> findAllByPattern(String field, Pattern pattern, Class<T> clazz) {
+	return datastore.createQuery(clazz).filter(field, pattern).asList();
+    }
+
+    public <T extends MorphiaModel> List<T> findAllByPattern(String field, String regex, Class<T> clazz) {
+	Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+	return findAllByPattern(field, pattern, clazz);
+    }
+
     public boolean healthy() {
 	try {
 	    client.getDatabase(configuration.dataStore).listCollections();
@@ -241,6 +252,10 @@ public class MongoDBClient implements Managed {
 
     public <T extends MorphiaModel> UpdateOperations<T> createUpdateOperation(Class<T> clazz) {
 	return (UpdateOperations<T>) datastore.createUpdateOperations(clazz);
+    }
+    
+    public <T extends MorphiaModel> UpdateResults runUpdateOperation( Query<T> query, UpdateOperations<T> operations){
+	return datastore.update(query, operations);
     }
 
     /**
