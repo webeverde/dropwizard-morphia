@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -74,6 +75,12 @@ public class MongoDBClient implements Managed {
 	Class<T> superClass = (Class<T>) clazz.getSuperclass();
 	if (!superClass.equals(Model.class)) {
 	    readFields(superClass, allFields);
+	} else {
+	    try {
+		allFields.add(Model.class.getDeclaredField("lastUpdate"));
+	    } catch (NoSuchFieldException | SecurityException e) {
+		LOGGER.error("Field should exist!", e);
+	    }
 	}
     }
 
@@ -167,6 +174,7 @@ public class MongoDBClient implements Managed {
     public <T extends Model> T update(T model) {
 	Class<? extends Model> clazz = model.getClass();
 	UpdateMask<T> mask = (UpdateMask<T>) getOrCreateUpdateMask(clazz);
+	model.setLastUpdate(new Date());
 	return update(model, mask);
     }
 
@@ -253,8 +261,8 @@ public class MongoDBClient implements Managed {
     public <T extends MorphiaModel> UpdateOperations<T> createUpdateOperation(Class<T> clazz) {
 	return (UpdateOperations<T>) datastore.createUpdateOperations(clazz);
     }
-    
-    public <T extends MorphiaModel> UpdateResults runUpdateOperation( Query<T> query, UpdateOperations<T> operations){
+
+    public <T extends MorphiaModel> UpdateResults runUpdateOperation(Query<T> query, UpdateOperations<T> operations) {
 	return datastore.update(query, operations);
     }
 
