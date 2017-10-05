@@ -280,8 +280,8 @@ public class MongoDBClient implements Managed {
      *            the models to compare to
      * @return the updated query
      */
-    public <T extends MorphiaModel> Query<? extends MorphiaModel> refModelIn(Query<? extends MorphiaModel> query,
-	    String field, Class<T> clazz, List<T> models) {
+    public <T extends MorphiaModel, Q extends MorphiaModel> Query<Q> refModelIn(Query<Q> query, String field,
+	    Class<T> clazz, List<T> models) {
 	List<String> ids = new ArrayList<>();
 	for (T t : models) {
 	    ids.add(t.getId());
@@ -303,8 +303,8 @@ public class MongoDBClient implements Managed {
      *            the ids
      * @return the updated query
      */
-    public <T extends MorphiaModel> Query<? extends MorphiaModel> refIn(Query<? extends MorphiaModel> query,
-	    String field, Class<T> clazz, List<String> ids) {
+    public <T extends MorphiaModel, Q extends MorphiaModel> Query<Q> refIn(Query<Q> query, String field, Class<T> clazz,
+	    List<String> ids) {
 	List<Key<T>> list = new ArrayList<>();
 	for (String id : ids) {
 	    list.add(new Key<>(clazz, clazz.getSimpleName(), id));
@@ -326,8 +326,8 @@ public class MongoDBClient implements Managed {
      *            the ids
      * @return the updated query
      */
-    public <T extends MorphiaModel> Query<? extends MorphiaModel> refEqual(Query<? extends MorphiaModel> query,
-	    String field, Class<T> clazz, String id) {
+    public <T extends MorphiaModel, Q extends MorphiaModel> Query<Q> refEqual(Query<Q> query, String field,
+	    Class<T> clazz, String id) {
 	return query.field(field).equal(new Key<>(clazz, clazz.getSimpleName(), id));
     }
 
