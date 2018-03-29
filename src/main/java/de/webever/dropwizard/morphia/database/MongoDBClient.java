@@ -202,12 +202,20 @@ public class MongoDBClient implements Managed {
 	return findByField("id", id, clazz);
     }
 
+    public <T extends MorphiaModel> List<T> findByIdList(List<String> ids, Class<T> clazz) {
+	return findAllByFieldValueList("id", ids, clazz);
+    }
+
     public <T extends MorphiaModel> T findByField(String field, Object value, Class<T> clazz) {
 	return datastore.createQuery(clazz).field(field).equal(value).get();
     }
 
     public <T extends MorphiaModel> List<T> findAllByField(String field, Object value, Class<T> clazz) {
 	return datastore.createQuery(clazz).field(field).equal(value).asList();
+    }
+
+    public <T extends MorphiaModel> List<T> findAllByFieldValueList(String field, List<?> values, Class<T> clazz) {
+	return datastore.createQuery(clazz).field(field).in(values).asList();
     }
 
     public <T extends MorphiaModel> List<T> findAllByPattern(String field, Pattern pattern, Class<T> clazz) {
