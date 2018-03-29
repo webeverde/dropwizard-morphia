@@ -22,7 +22,7 @@ public class MongoDBConfiguration extends Configuration {
     public String replicaSetName = null;
     @NotEmpty
     @Size(min = 16, max = 16)
-    public String cryptSeed = "1234567890123456";
+    public String cryptSeed = "$5$9a8shdfoiuq23";
     @NotNull
     public boolean enableCrypt = false;
 
