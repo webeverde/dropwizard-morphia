@@ -1,9 +1,7 @@
 package de.webever.dropwizard.morphia.database;
 
 import java.beans.IntrospectionException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,7 +13,6 @@ import java.util.regex.Pattern;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Key;
 import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.annotations.Transient;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import org.mongodb.morphia.query.UpdateResults;
@@ -66,44 +63,13 @@ public class MongoDBClient implements Managed {
 	datastore.ensureIndexes();
     }
 
-    private <T extends Model> void readFields(Class<T> clazz, List<Field> allFields) {
-	Field[] fields = clazz.getDeclaredFields();
-	for (int i = 0; i < fields.length; i++) {
-	    allFields.add(fields[i]);
-	}
-	@SuppressWarnings("unchecked")
-	Class<T> superClass = (Class<T>) clazz.getSuperclass();
-	if (!superClass.equals(Model.class)) {
-	    readFields(superClass, allFields);
-	} else {
-	    try {
-		allFields.add(Model.class.getDeclaredField("lastUpdate"));
-	    } catch (NoSuchFieldException | SecurityException e) {
-		LOGGER.error("Field should exist!", e);
-	    }
-	}
-    }
-
-    private <T extends Model> UpdateMask<T> initMask(Class<T> clazz) throws IntrospectionException {
-	List<Field> allFields = new ArrayList<>();
-	readFields(clazz, allFields);
-	Field[] fieldNames = new Field[allFields.size()];
-	for (int i = 0; i < fieldNames.length; i++) {
-	    Field f = allFields.get(i);
-	    if (!Modifier.isFinal(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())
-		    && !Modifier.isTransient(f.getModifiers()) && !f.isAnnotationPresent(Transient.class)) {
-		fieldNames[i] = allFields.get(i);
-	    }
-	}
-	return new UpdateMask<>(clazz, fieldNames);
-    }
 
     private <T extends Model> UpdateMask<T> getOrCreateUpdateMask(Class<T> clazz) {
 	@SuppressWarnings("unchecked")
 	UpdateMask<T> mask = (UpdateMask<T>) updateMasks.get(clazz);
 	if (mask == null) {
 	    try {
-		mask = (UpdateMask<T>) initMask(clazz);
+		mask = UpdateMask.createMask(clazz);
 	    } catch (IntrospectionException e) {
 		LOGGER.error("Error in initMask", e);
 		return null;
