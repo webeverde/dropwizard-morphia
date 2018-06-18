@@ -12,10 +12,12 @@ import io.dropwizard.Configuration;
  *
  */
 public class MongoDBConfiguration extends Configuration {
-    @NotEmpty
+    
+    public String url;
+    
     public String host = "localhost";
-    @NotEmpty
     public int port = 27017;
+    
     @NotEmpty
     public String dataStore = "dropwizard";
     
