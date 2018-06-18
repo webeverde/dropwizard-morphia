@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientURI;
 import com.mongodb.ServerAddress;
 
 import de.webever.dropwizard.morphia.MongoDBConfiguration;
@@ -52,7 +53,10 @@ public class MongoDBClient implements Managed {
     public MongoDBClient(MongoDBConfiguration configuration, String modelPackage) throws IntrospectionException {
 	this.configuration = configuration;
 	morphia.mapPackage(modelPackage, true);
-	if (configuration.replicaSetName != null && !configuration.replicaSetName.isEmpty()) {
+	if (configuration.url != null) {
+	    MongoClientURI uri = new MongoClientURI(configuration.url);
+	    client = new MongoClient(uri);
+	} else if (configuration.replicaSetName != null && !configuration.replicaSetName.isEmpty()) {
 	    MongoClientOptions options = new MongoClientOptions.Builder()
 		    .requiredReplicaSetName(configuration.replicaSetName).build();
 	    client = new MongoClient(new ServerAddress(configuration.host, configuration.port), options);
@@ -62,7 +66,6 @@ public class MongoDBClient implements Managed {
 	datastore = morphia.createDatastore(client, configuration.dataStore);
 	datastore.ensureIndexes();
     }
-
 
     private <T extends Model> UpdateMask<T> getOrCreateUpdateMask(Class<T> clazz) {
 	@SuppressWarnings("unchecked")
