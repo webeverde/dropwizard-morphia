@@ -4,7 +4,7 @@
 
 	<groupId>de.webever.dropwizard</groupId>
 	<artifactId>dropwizard-morphia</artifactId>
-	<version>0.10-BETA</version>
+	<version>0.11-BETA</version>
 	<packaging>jar</packaging>
 
 	<name>dropwizard-morphia</name>
