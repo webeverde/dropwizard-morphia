@@ -33,7 +33,7 @@ public abstract class CryptModel extends Model {
 
     static Reflections reflections;
 
-    private static boolean enabled = true;
+    private static boolean enabled = false;
 
     public static void init(String packageName, boolean enable) {
 	reflections = new Reflections(packageName, new FieldAnnotationsScanner());
@@ -44,7 +44,10 @@ public abstract class CryptModel extends Model {
     void encryptFields(final DBObject dbObj) throws IllegalArgumentException, IllegalAccessException, IOException {
 	forEveryCrypt((input) -> {
 	    try {
-		return Cryptor.encrypt(input);
+		if (enabled) {
+		    return Cryptor.encrypt(input);
+		}
+		return input;
 	    } catch (IOException e) {
 		LOGGER.error("Encrypt failed! Val: " + input, e);
 	    }
@@ -56,7 +59,10 @@ public abstract class CryptModel extends Model {
     void decryptFields() throws IllegalArgumentException, IllegalAccessException, IOException {
 	forEveryCrypt((input) -> {
 	    try {
-		return Cryptor.decrypt(input);
+		if (enabled) {
+		    return Cryptor.decrypt(input);
+		}
+		return input;
 	    } catch (IOException e) {
 		LOGGER.error("Decrypt failed! Val: " + input, e);
 	    }
