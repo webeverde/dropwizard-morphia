@@ -247,6 +247,10 @@ public class MongoDBClient implements Managed {
      * Updates a query for a field that references another {@link MorphiaModel}
      * and is in the supplied list of models.
      * 
+     * @param <T>
+     *            the class of the references model
+     * @param <Q>
+     *            the class of the query model
      * @param query
      *            the query to update
      * @param field
@@ -270,6 +274,10 @@ public class MongoDBClient implements Managed {
      * Updates a query for a field that references another {@link MorphiaModel}
      * and is in the supplied list of ids.
      * 
+     * @param <T>
+     *            the class of the references model
+     * @param <Q>
+     *            the class of the query model
      * @param query
      *            the query to update
      * @param field
@@ -293,14 +301,18 @@ public class MongoDBClient implements Managed {
      * Updates a query for a field that references another {@link MorphiaModel}
      * and is equal to the supplied id.
      * 
+     * @param <T>
+     *            the class of the references model
+     * @param <Q>
+     *            the class of the query model
      * @param query
      *            the query to update
      * @param field
      *            the field to compare
      * @param clazz
      *            the class of the field
-     * @param ids
-     *            the ids
+     * @param id
+     *            the id
      * @return the updated query
      */
     public <T extends MorphiaModel, Q extends MorphiaModel> Query<Q> refEqual(Query<Q> query, String field,
