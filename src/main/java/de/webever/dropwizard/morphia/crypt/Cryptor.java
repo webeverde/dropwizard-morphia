@@ -21,8 +21,12 @@ public class Cryptor {
     /**
      * Initiated the encrypter with a new seed.
      * 
+     * @param apiPackageName
+     *            the package name for the models that use encryption
      * @param seed
      *            the seed.
+     * @param enabled
+     *            enable / disable crypt
      * @throws IOException
      *             could be thrown by writing buffer.
      */
