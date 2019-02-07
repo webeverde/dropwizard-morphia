@@ -1,6 +1,7 @@
 package de.webever.dropwizard.morphia.database;
 
 import java.beans.IntrospectionException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
@@ -149,6 +150,13 @@ public class MongoDBClient implements Managed {
 
     @SuppressWarnings("unchecked")
     public <T extends MorphiaModel> T update(T model, UpdateMask<T> mask) {
+	for (Method method : mask.getPreSave()) {
+	    try {
+		method.invoke(model);
+	    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		LOGGER.error("Could not invoke presave method " + method.getName() + "!", e);
+	    }
+	}
 	UpdateOperations<T> query = datastore.createUpdateOperations((Class<T>) model.getClass());
 	HashMap<String, Method> map = mask.getGetters();
 	for (String fieldName : map.keySet()) {
