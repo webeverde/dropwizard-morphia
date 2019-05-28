@@ -68,7 +68,14 @@ public class MongoDBClient implements Managed {
 	datastore.ensureIndexes();
     }
 
-    private <T extends Model> UpdateMask<T> getOrCreateUpdateMask(Class<T> clazz) {
+    /**
+     * Returns the update mask for the specified model class. These can be
+     * used to help create low level update queries.
+     * 
+     * @param clazz the class
+     * @return the mask
+     */
+    public <T extends Model> UpdateMask<T> getOrCreateUpdateMask(Class<T> clazz) {
 	@SuppressWarnings("unchecked")
 	UpdateMask<T> mask = (UpdateMask<T>) updateMasks.get(clazz);
 	if (mask == null) {
