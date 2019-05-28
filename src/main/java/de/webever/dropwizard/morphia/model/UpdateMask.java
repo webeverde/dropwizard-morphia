@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.mongodb.morphia.annotations.PrePersist;
+import org.mongodb.morphia.annotations.PreSave;
 import org.mongodb.morphia.annotations.Transient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,9 @@ public class UpdateMask<T extends MorphiaModel> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateMask.class);
 
     private HashMap<String, Method> getters = new HashMap<>();
+
+    private List<Method> preSave = new ArrayList<>();
+    private List<Method> prePersist = new ArrayList<>();
 
     public UpdateMask(Class<T> clazz, String... fields) {
 
@@ -38,7 +43,7 @@ public class UpdateMask<T extends MorphiaModel> {
 	return name.substring(0, 1).toUpperCase(ENGLISH) + name.substring(1);
     }
 
-    public UpdateMask(Class<T> clazz, Field... fields) {
+    public UpdateMask(Class<T> clazz, List<Method> preSave, List<Method> prePersist, Field... fields) {
 	fillGetters(clazz, Lists.newArrayList(fields));
     }
 
@@ -85,6 +90,24 @@ public class UpdateMask<T extends MorphiaModel> {
 	}
     }
 
+    private static <Z extends Model> void readPreMethods(Class<Z> clazz, List<Method> preSaveMethods,
+	    List<Method> prePersistMethods) {
+	Method[] methods = clazz.getDeclaredMethods();
+	for (int i = 0; i < methods.length; i++) {
+	    if (methods[i].isAnnotationPresent(PreSave.class)) {
+		preSaveMethods.add(methods[i]);
+	    } else if (methods[i].isAnnotationPresent(PrePersist.class)) {
+		prePersistMethods.add(methods[i]);
+	    }
+
+	}
+	@SuppressWarnings("unchecked")
+	Class<Z> superClass = (Class<Z>) clazz.getSuperclass();
+	if (!superClass.equals(Model.class)) {
+	    readPreMethods(superClass, preSaveMethods, prePersistMethods);
+	}
+    }
+
     private static <Z extends MorphiaModel> void readFields(Class<Z> clazz, List<Field> allFields, List<String> names) {
 	Field[] fields = clazz.getDeclaredFields();
 	if (names == null) {
@@ -113,7 +136,12 @@ public class UpdateMask<T extends MorphiaModel> {
 		fieldNames[i] = allFields.get(i);
 	    }
 	}
-	return new UpdateMask<>(clazz, fieldNames);
+
+	List<Method> preSaveMethods = new ArrayList<>();
+	List<Method> prePersistMethods = new ArrayList<>();
+	readPreMethods(clazz, preSaveMethods, prePersistMethods);
+
+	return new UpdateMask<>(clazz, preSaveMethods, prePersistMethods, fieldNames);
     }
 
     /**
@@ -125,6 +153,22 @@ public class UpdateMask<T extends MorphiaModel> {
 
     public void removeField(String fieldName) {
 	getters.remove(fieldName);
+    }
+
+    public List<Method> getPreSave() {
+	return preSave;
+    }
+
+    public void setPreSave(List<Method> preSave) {
+	this.preSave = preSave;
+    }
+
+    public List<Method> getPrePersist() {
+	return prePersist;
+    }
+
+    public void setPrePersist(List<Method> prePersist) {
+	this.prePersist = prePersist;
     }
 
 }
